@@ -1,8 +1,15 @@
 # PortMidi API
 
-* CountDevices
+## Done
+
+* Pm_Initialize
+* Pm_Terminate
+* Pm_CountDevices
+* GetDeviceInfo
+
+## Todo
+
 * GetDefaultInputDeviceID
 * GetDefaultOutputDeviceID
-* GetDeviceInfo
 * OpenInput
 * OpenOutput

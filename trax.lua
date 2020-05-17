@@ -23,6 +23,18 @@ print(a[3])
 
 os.date()
 
-pmidi = require 'luapmidi'
+pmidi = require('portmidi')
 
-print(pmidi.mysin(2))
+pmidi.initialize()
+
+pmidi.countdevices()
+
+d1 = pmidi.getdeviceinfo(1)
+
+d1
+
+d1:isopen()
+
+pmidi.devicename(pmidi.getdeviceinfo(3))
+
+pmidi.terminate()
