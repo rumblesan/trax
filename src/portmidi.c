@@ -28,44 +28,44 @@ typedef struct MidiDeviceInfo {
   const PmDeviceInfo *info;
 } MidiDeviceInfo;
 
-static MidiDeviceInfo *checkmididevice(lua_State *L) {
-  return luaL_checkudata(L, 1, MIDIDEVICE_METATABLE);
+static MidiDeviceInfo *checkmididevice(lua_State *L, int arg_num) {
+  return luaL_checkudata(L, arg_num, MIDIDEVICE_METATABLE);
 }
 
 // Methods
 
 static int c_pm_DeviceInterface(lua_State *L) {
-  MidiDeviceInfo *minfo = checkmididevice(L);
+  MidiDeviceInfo *minfo = checkmididevice(L, 1);
   lua_pushstring(L, minfo->info->interf);
   return 1;
 }
 
 static int c_pm_DeviceName(lua_State *L) {
-  MidiDeviceInfo *minfo = checkmididevice(L);
+  MidiDeviceInfo *minfo = checkmididevice(L, 1);
   lua_pushstring(L, minfo->info->name);
   return 1;
 }
 
 static int c_pm_DeviceIsInput(lua_State *L) {
-  MidiDeviceInfo *minfo = checkmididevice(L);
+  MidiDeviceInfo *minfo = checkmididevice(L, 1);
   lua_pushboolean(L, minfo->info->input == 1);
   return 1;
 }
 
 static int c_pm_DeviceIsOutput(lua_State *L) {
-  MidiDeviceInfo *minfo = checkmididevice(L);
+  MidiDeviceInfo *minfo = checkmididevice(L, 1);
   lua_pushboolean(L, minfo->info->output == 1);
   return 1;
 }
 
 static int c_pm_DeviceIsOpen(lua_State *L) {
-  MidiDeviceInfo *minfo = checkmididevice(L);
+  MidiDeviceInfo *minfo = checkmididevice(L, 1);
   lua_pushboolean(L, minfo->info->opened == 1);
   return 1;
 }
 
 static int c_pm_DeviceToString(lua_State *L) {
-  MidiDeviceInfo *minfo = checkmididevice(L);
+  MidiDeviceInfo *minfo = checkmididevice(L, 1);
   lua_pushstring(L, minfo->info->name);
   return 1;
 }
@@ -105,12 +105,12 @@ typedef struct MidiStream {
   MidiStream_Direction direction;
 } MidiStream;
 
-static MidiStream *checkmidistream(lua_State *L) {
-  return luaL_checkudata(L, 1, MIDISTREAM_METATABLE);
+static MidiStream *checkmidistream(lua_State *L, int arg_num) {
+  return luaL_checkudata(L, arg_num, MIDISTREAM_METATABLE);
 }
 
 static int c_pm_MidiStreamDirection(lua_State *L) {
-  MidiStream *mstream = checkmidistream(L);
+  MidiStream *mstream = checkmidistream(L, 1);
   switch(mstream->direction) {
     case MidiStream_Output:
       lua_pushstring(L, "output");
@@ -123,7 +123,7 @@ static int c_pm_MidiStreamDirection(lua_State *L) {
 }
 
 static int c_pm_MidiStreamToString(lua_State *L) {
-  checkmidistream(L);
+  checkmidistream(L, 1);
   lua_pushliteral(L, "MidiStream");
   return 1;
 }
@@ -236,6 +236,40 @@ static int c_pm_OpenOutput(lua_State *L) {
   return 1;
 }
 
+static int c_pm_WriteNoteOn(lua_State *L) {
+  MidiStream *mstream = checkmidistream(L, 1);
+  int channel = luaL_checkinteger(L, 2);
+  int note = luaL_checkinteger(L, 3);
+  int velocity = luaL_checkinteger(L, 4);
+
+  PmMessage msg = Pm_Message(0x90 | channel, note, velocity);
+
+  PmError err = Pm_WriteShort(mstream->stream, 0, msg);
+  if (err == pmNoError) {
+    lua_pushnil(L);
+  } else {
+    lua_pushinteger(L, err);
+  }
+  return 1;
+}
+
+static int c_pm_WriteNoteOff(lua_State *L) {
+  MidiStream *mstream = checkmidistream(L, 1);
+  int channel = luaL_checkinteger(L, 2);
+  int note = luaL_checkinteger(L, 3);
+  int velocity = luaL_checkinteger(L, 4);
+
+  PmMessage msg = Pm_Message(0x80 | channel, note, velocity);
+
+  PmError err = Pm_WriteShort(mstream->stream, 0, msg);
+  if (err == pmNoError) {
+    lua_pushnil(L);
+  } else {
+    lua_pushinteger(L, err);
+  }
+  return 1;
+}
+
 static const struct luaL_Reg portmidi [] = {
   {"initialize", c_pm_Initialize},
   {"terminate", c_pm_Terminate},
@@ -243,6 +277,8 @@ static const struct luaL_Reg portmidi [] = {
   {"getdeviceinfo", c_pm_GetDeviceInfo},
   {"openinput", c_pm_OpenInput},
   {"openoutput", c_pm_OpenOutput},
+  {"noteon", c_pm_WriteNoteOn},
+  {"noteoff", c_pm_WriteNoteOff},
   {NULL, NULL}  /* sentinel */
 };
 
