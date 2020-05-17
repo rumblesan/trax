@@ -48,19 +48,19 @@ static int c_pm_DeviceName(lua_State *L) {
 
 static int c_pm_DeviceIsInput(lua_State *L) {
   MidiDeviceInfo *minfo = checkmididevice(L);
-  lua_pushboolean(L, minfo->info->input != 1);
+  lua_pushboolean(L, minfo->info->input == 1);
   return 1;
 }
 
 static int c_pm_DeviceIsOutput(lua_State *L) {
   MidiDeviceInfo *minfo = checkmididevice(L);
-  lua_pushboolean(L, minfo->info->output != 1);
+  lua_pushboolean(L, minfo->info->output == 1);
   return 1;
 }
 
 static int c_pm_DeviceIsOpen(lua_State *L) {
   MidiDeviceInfo *minfo = checkmididevice(L);
-  lua_pushboolean(L, minfo->info->opened != 1);
+  lua_pushboolean(L, minfo->info->opened == 1);
   return 1;
 }
 
@@ -90,11 +90,65 @@ static void register_MidiDeviceInfo(lua_State *L) {
 
 
 /**
+ * PortMidi Stream
+ */
+
+#define MIDISTREAM_METATABLE "PortMidi.MidiStream"
+
+typedef enum midistream_direction {
+  MidiStream_Output,
+  MidiStream_Input
+} MidiStream_Direction;
+
+typedef struct MidiStream {
+  PmStream *stream;
+  MidiStream_Direction direction;
+} MidiStream;
+
+static MidiStream *checkmidistream(lua_State *L) {
+  return luaL_checkudata(L, 1, MIDISTREAM_METATABLE);
+}
+
+static int c_pm_MidiStreamDirection(lua_State *L) {
+  MidiStream *mstream = checkmidistream(L);
+  switch(mstream->direction) {
+    case MidiStream_Output:
+      lua_pushstring(L, "output");
+      break;
+    case MidiStream_Input:
+      lua_pushstring(L, "input");
+      break;
+  }
+  return 1;
+}
+
+static int c_pm_MidiStreamToString(lua_State *L) {
+  checkmidistream(L);
+  lua_pushliteral(L, "MidiStream");
+  return 1;
+}
+
+static const struct luaL_Reg portmidi_midistream_m [] = {
+  {"__tostring", c_pm_MidiStreamToString},
+  {"direction", c_pm_MidiStreamDirection},
+  {NULL, NULL}  /* sentinel */
+};
+
+static void register_MidiStream(lua_State *L) {
+  luaL_newmetatable(L, MIDISTREAM_METATABLE);
+  lua_pushvalue(L, -1);
+  lua_setfield(L, -2, "__index");
+  luaL_setfuncs(L, portmidi_midistream_m, 0);
+}
+
+
+/**
  * PortMidi Functions
  */
 
 static int c_pm_Initialize(lua_State *L) {
   PmError err = Pm_Initialize();
+  // TODO some form of error handling
   if (err == pmNoError) {
     lua_pushnil(L);
   } else {
@@ -105,6 +159,7 @@ static int c_pm_Initialize(lua_State *L) {
 
 static int c_pm_Terminate(lua_State *L) {
   PmError err = Pm_Terminate();
+  // TODO some form of error handling
   if (err == pmNoError) {
     lua_pushnil(L);
   } else {
@@ -134,17 +189,66 @@ static int c_pm_GetDeviceInfo(lua_State *L) {
   return 1;
 }
 
+static int c_pm_OpenInput(lua_State *L) {
+  int device_id = luaL_checkinteger(L, 1);
+  MidiStream *mstream = lua_newuserdata(L, sizeof(MidiStream));
+  mstream->direction = MidiStream_Input;
+  PmError err = Pm_OpenInput(
+    &mstream->stream,
+    device_id,
+    NULL,
+    0,
+    NULL,
+    NULL
+  );
+  if (err != pmNoError) {
+    lua_pop(L, 1); // Remove the MidiStream userdata created above
+    lua_pushnil(L);
+    return 1;
+  }
+
+  luaL_getmetatable(L, MIDISTREAM_METATABLE);
+  lua_setmetatable(L, -2);
+  return 1;
+}
+
+static int c_pm_OpenOutput(lua_State *L) {
+  int device_id = luaL_checkinteger(L, 1);
+  MidiStream *mstream = lua_newuserdata(L, sizeof(MidiStream));
+  mstream->direction = MidiStream_Output;
+  PmError err = Pm_OpenOutput(
+    &mstream->stream,
+    device_id,
+    NULL,
+    0,
+    NULL,
+    NULL,
+    0 // latency
+  );
+  if (err != pmNoError) {
+    lua_pop(L, 1); // Remove the MidiStream userdata created above
+    lua_pushnil(L);
+    return 1;
+  }
+
+  luaL_getmetatable(L, MIDISTREAM_METATABLE);
+  lua_setmetatable(L, -2);
+  return 1;
+}
 
 static const struct luaL_Reg portmidi [] = {
   {"initialize", c_pm_Initialize},
   {"terminate", c_pm_Terminate},
   {"countdevices", c_pm_CountDevices},
   {"getdeviceinfo", c_pm_GetDeviceInfo},
+  {"openinput", c_pm_OpenInput},
+  {"openoutput", c_pm_OpenOutput},
   {NULL, NULL}  /* sentinel */
 };
 
 int luaopen_portmidi (lua_State *L){
   register_MidiDeviceInfo(L);
+  register_MidiStream(L);
 
   luaL_newlib(L, portmidi);
   return 1;
