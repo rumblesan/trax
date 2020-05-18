@@ -5,7 +5,7 @@ VPATH             = src
 LIBS              = -lportmidi -llua
 
 MAIN_BUILD_DIR    = build
-HEADER_DIRS       =
+HEADER_DIRS       = include
 
 INCLUDES          = $(addprefix -I, $(HEADER_DIRS))
 

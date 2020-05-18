@@ -9,16 +9,12 @@ d1 = pmidi.getdeviceinfo(2)
 
 d1:isoutput()
 
-stream = pmidi.openoutput(2)
+d1:id()
+
+stream = d1:openoutput()
 
 stream:direction()
 
-pmidi.noteon(stream, 2, 80, 100)
+stream:noteon(2, 80, 100)
 
-pmidi.noteoff(stream, 2, 80, 100)
-
-d1:isoutput()
-
-pmidi.devicename(pmidi.getdeviceinfo(3))
-
-pmidi.terminate()
+stream:noteoff(2, 80, 100)
