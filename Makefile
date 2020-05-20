@@ -1,31 +1,37 @@
 CC                = clang
 CFLAGS            = -Wall -g
-LDFLAGS           = -shared
 VPATH             = src
-LIBS              = -lportmidi -llua
+LIBS              = -llua
 
-MAIN_BUILD_DIR    = build
+TEST_C_FLAGS      = $(CFLAGS)
+TEST_LIBS         =
+
+MAIN_BUILD_DIR    = build/main
+TEST_BUILD_DIR    = build/tests
 HEADER_DIRS       = include
 
 INCLUDES          = $(addprefix -I, $(HEADER_DIRS))
 
-CORE_SOURCES      = $(notdir $(wildcard src/*.c))
-MAIN_SOURCES      = $(CORE_SOURCES)
+CORE_SOURCES      = $(notdir $(wildcard src/core/*.c))
+TEST_SOURCES      = $(notdir $(wildcard src/tests/*.c)) $(CORE_SOURCES)
+MAIN_SOURCES      = main.c $(CORE_SOURCES)
 
 MAIN_OBJECTS      = $(addprefix $(MAIN_BUILD_DIR)/, $(MAIN_SOURCES:.c=.o))
+TEST_OBJECTS      = $(addprefix $(TEST_BUILD_DIR)/, $(TEST_SOURCES:.c=.o))
 
-OUTPUTLIB         = portmidi.so
+EXECUTABLE        = trax
+TEST_EXECUTABLE   = $(addprefix $(TEST_BUILD_DIR)/, test_$(EXECUTABLE))
 
 .PHONY: clean
 
-all: $(OUTPUTLIB)
+all: $(EXECUTABLE)
 
 $(MAIN_BUILD_DIR)/%.o: %.c
-	$(CC) $(LIBS) $(LDFLAGS) $(CFLAGS) $(INCLUDES) $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
-$(OUTPUTLIB): $(MAIN_OBJECTS)
-	$(CC) $(LIBS) $(LDFLAGS) $(LIBS) $(MAIN_OBJECTS) -o $@
+$(EXECUTABLE): $(MAIN_OBJECTS)
+	$(CC) $(LIBS) $(MAIN_OBJECTS) -o $@
 
 clean:
-	rm -rf $(OUTPUTLIB)
+	rm -rf $(EXECUTABLE)
 	rm -rf $(MAIN_BUILD_DIR)/*
