@@ -1,7 +1,7 @@
 CC                = clang
 CFLAGS            = -Wall -g
 VPATH             = src src/core
-LIBS              = -llua -lck -llo
+LIBS              = -llua -lck -llo -lconfig
 
 TEST_C_FLAGS      = $(CFLAGS)
 TEST_LIBS         =

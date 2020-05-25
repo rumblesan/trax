@@ -11,6 +11,7 @@
 #include "core/app.h"
 #include "core/osc_server.h"
 #include "core/control_message.h"
+#include "core/config.h"
 
 int simpletest(lua_State *L) {
   lua_pushinteger(L, 1337);
@@ -36,8 +37,19 @@ int run_sequencer(lua_State *L) {
   return 0;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+  int exitValue = EXIT_SUCCESS;
+
   int error;
+
+  TraxCfg *cfg = NULL;
+  OSCServer osc_server = NULL;
+  AppState *app = NULL;
+
+  char *config_path = argv[1];
+
+  cfg = cfg_read(config_path);
+  check(cfg != NULL, "Could not read config file");
 
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
@@ -45,14 +57,14 @@ int main(void) {
   luaL_requiref(L, "trax", luaopen_trax, 1);
   lua_pop(L, 1);
 
-  if (luaL_dofile(L, "./assets/lua/trax.lua")) {
-    printf("Could not load trax");
+  if (luaL_dofile(L, cfg->startup_code_path)) {
+    printf("Could not initialisation lua code");
     lua_close(L);
     return 1;
   }
 
-  AppState *app = app_state_create(L);
-  osc_start_server(app);
+  app = app_state_create(L);
+  osc_server = osc_start_server(app);
 
   while (app->running) {
     ControlMessage *new_control_message = NULL;
@@ -78,5 +90,17 @@ int main(void) {
   }
 
   lua_close(L);
-  return 0;
+
+  goto cleanup;
+
+error:
+  printf("Exiting Trax with failure\n");
+  exitValue = EXIT_FAILURE;
+
+cleanup:
+  if (osc_server != NULL) osc_stop_server(osc_server);
+  if (app != NULL) app_state_destroy(app);
+  if (cfg != NULL) cfg_destroy(cfg);
+
+  return exitValue;
 }
