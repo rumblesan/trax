@@ -10,6 +10,8 @@ typedef struct {
 
   const char *startup_code_path;
 
+  double ms_sleep;
+
 } TraxCfg;
 
 TraxCfg *cfg_read(char *config_path);

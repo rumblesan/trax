@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <lua/lua.h>
 #include <lua/lauxlib.h>
@@ -12,6 +13,8 @@
 #include "core/osc_server.h"
 #include "core/control_message.h"
 #include "core/config.h"
+
+#define NANO_SECOND_MULTIPLIER  1000000  // 1 millisecond = 1,000,000 Nanoseconds
 
 int simpletest(lua_State *L) {
   lua_pushinteger(L, 1337);
@@ -46,9 +49,13 @@ int main(int argc, char *argv[]) {
   OSCServer osc_server = NULL;
   AppState *app = NULL;
 
-  char *config_path = argv[1];
 
-  cfg = cfg_read(config_path);
+  if (argc < 2) {
+    cfg = cfg_read("./config.cfg");
+  } else {
+    char *config_path = argv[1];
+    cfg = cfg_read(config_path);
+  }
   check(cfg != NULL, "Could not read config file");
 
   lua_State *L = luaL_newstate();
@@ -65,6 +72,10 @@ int main(int argc, char *argv[]) {
 
   app = app_state_create(L);
   osc_server = osc_start_server(app);
+
+  struct timespec tim, tim2;
+  tim.tv_sec = 0;
+  tim.tv_nsec = cfg->ms_sleep * NANO_SECOND_MULTIPLIER;
 
   while (app->running) {
     ControlMessage *new_control_message = NULL;
@@ -86,7 +97,7 @@ int main(int argc, char *argv[]) {
     }
     run_sequencer(L);
 
-    sleep(5);
+    nanosleep(&tim, &tim2);
   }
 
   lua_close(L);

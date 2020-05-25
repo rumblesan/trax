@@ -6,6 +6,8 @@
 
 #include "core/config.h"
 
+#define DEFAULT_MS_SLEEP 10
+
 TraxCfg *cfg_read(char *config_path) {
   log_info("Loading config from %s", config_path);
 
@@ -26,6 +28,15 @@ TraxCfg *cfg_read(char *config_path) {
   check(config_lookup_string(
     cfg, "startup_code_path", &trax_cfg->startup_code_path),
     "Could not read startup code filepath setting");
+
+  double sleep_ms_interval = 0.0;
+  int found = config_lookup_float(cfg, "sleep_ms_interval", &sleep_ms_interval);
+  if (!found) {
+    sleep_ms_interval = DEFAULT_MS_SLEEP;
+  } else {
+    check(sleep_ms_interval > 0.0, "Need to choose a sleep interval greater than 0");
+  }
+  trax_cfg->ms_sleep = sleep_ms_interval;
 
   return trax_cfg;
  error:
