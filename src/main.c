@@ -1,11 +1,16 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <lua/lua.h>
 #include <lua/lauxlib.h>
 #include <lua/lualib.h>
 
 #include "dbg.h"
+
+#include "core/app.h"
+#include "core/osc_server.h"
+#include "core/control_message.h"
 
 int simpletest(lua_State *L) {
   lua_pushinteger(L, 1337);
@@ -32,7 +37,6 @@ int run_sequencer(lua_State *L) {
 }
 
 int main(void) {
-  char buff[256];
   int error;
 
   lua_State *L = luaL_newstate();
@@ -47,15 +51,30 @@ int main(void) {
     return 1;
   }
 
-  while (fgets(buff, sizeof(buff), stdin) != NULL) {
-    error = luaL_loadstring(L, buff) || lua_pcall(L, 0, 0, 0);
-    if (error) {
-      fprintf(stderr, "%s\n", lua_tostring(L, -1));
-      lua_pop(L, 1);
-    }
+  AppState *app = app_state_create(L);
+  osc_start_server(app);
 
+  while (app->running) {
+    ControlMessage *new_control_message = NULL;
+
+    while (
+      ck_ring_dequeue_spsc(
+        app->osc_control_bus,
+        app->osc_control_bus_buffer,
+        &new_control_message
+      ) == true
+    ) {
+      printf("Running code %s\n", new_control_message->code);
+      error = luaL_loadstring(L, new_control_message->code) || lua_pcall(L, 0, 0, 0);
+      if (error) {
+        fprintf(stderr, "%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);
+      }
+      cm_destroy(new_control_message);
+    }
     run_sequencer(L);
 
+    sleep(5);
   }
 
   lua_close(L);

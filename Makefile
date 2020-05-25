@@ -1,7 +1,7 @@
 CC                = clang
 CFLAGS            = -Wall -g
-VPATH             = src
-LIBS              = -llua
+VPATH             = src src/core
+LIBS              = -llua -lck -llo
 
 TEST_C_FLAGS      = $(CFLAGS)
 TEST_LIBS         =
@@ -22,9 +22,13 @@ TEST_OBJECTS      = $(addprefix $(TEST_BUILD_DIR)/, $(TEST_SOURCES:.c=.o))
 EXECUTABLE        = trax
 TEST_EXECUTABLE   = $(addprefix $(TEST_BUILD_DIR)/, test_$(EXECUTABLE))
 
-.PHONY: clean
+.PHONY: clean echo
 
 all: $(EXECUTABLE)
+
+echo:
+	echo ${MAIN_SOURCES}
+	echo ${MAIN_OBJECTS}
 
 $(MAIN_BUILD_DIR)/%.o: %.c
 	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
