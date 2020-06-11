@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "lua/lua.h"
 #include "lua/lualib.h"
@@ -165,7 +167,27 @@ static int c_pm_DeviceOpenOutputStream(lua_State *L) {
 
 static int c_pm_DeviceToString(lua_State *L) {
   MidiDevice *device = checkmididevice(L, 1);
-  lua_pushstring(L, device->info->name);
+
+  int namelen = strlen(device->info->name);
+            //  name   spc  -> spc  in/out nullterm
+  int fulllen = namelen + 1 + 2 + 1 + 3 + 1;
+  char dir[4];
+  if (device->info->input) {
+    printf("input device\n");
+    dir[0] = 'I';
+    dir[1] = 'n';
+    dir[2] = '\0';
+  } else {
+    dir[0] = 'O';
+    dir[1] = 'u';
+    dir[2] = 't';
+    dir[3] = '\0';
+  }
+  char *nameinfo = malloc(fulllen * sizeof(char));
+  sprintf(nameinfo, "%s -> %s", device->info->name, dir);
+
+  lua_pushstring(L, nameinfo);
+  free(nameinfo);
   return 1;
 }
 
