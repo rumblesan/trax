@@ -23,10 +23,12 @@ int run_sequencer(AppState *app) {
   double c_time = app_set_time(app);
 
   lua_State *L = app->lua;
-  lua_getglobal(L, "run");
+  lua_getglobal(L, "Trax");
+  lua_getfield(L, 1, "run");
+  lua_getglobal(L, "Trax");
   lua_pushnumber(L, p_time);
   lua_pushnumber(L, c_time);
-  lua_call(L, 2, 0);
+  lua_call(L, 3, 0);
   return 0;
 }
 
