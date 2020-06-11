@@ -1,16 +1,34 @@
 
-print("sequencer has loaded")
+print("Trax has loaded")
 
-sequencer = {}
+state = {}
+state.bpm = 120
+state.beat = 0
+state.sequences = {}
 
-sequencer[0] = function ()
-  print("track 0")
-end
-
-function run()
-  for idx, seq in pairs(sequencer) do
-    seq()
+function add(num, func)
+  if type(num) ~= "number" then
+    print("no sequence number given")
+    return
+  end
+  if type(func) == "function" then
+    state.sequences[num] = func
+  else
+    state.sequences[num] = nil
   end
 end
 
-run()
+function run(pTime, cTime)
+
+  local bpm = state.bpm
+  local beat = state.bpm
+  local tdiff = cTime - pTime
+  local bdelta = (bpm / 60000) * tdiff
+  local pBeat = beat
+  state.beat = beat + bdelta
+  local cBeat = beat
+
+  for idx, seq in pairs(state.sequences) do
+    seq(beat, pBeat, cBeat, pTime, cTime)
+  end
+end
