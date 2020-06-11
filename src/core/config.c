@@ -9,7 +9,7 @@
 #define DEFAULT_MS_SLEEP 10
 
 TraxCfg *cfg_read(char *config_path) {
-  log_info("Loading config from %s", config_path);
+  printf("Loading config from %s\n", config_path);
 
   config_t *cfg = NULL;
 

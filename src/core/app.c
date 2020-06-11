@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <sys/time.h>
 
 #include <lua/lua.h>
 
@@ -10,20 +11,9 @@
 
 #include "core/app.h"
 
-bool create_ring_buffer(ck_ring_buffer_t **buffer, ck_ring_t **bus, uint16_t size) {
-  *bus = malloc(sizeof(ck_ring_t));
-  check_mem(*bus);
-  *buffer = malloc(sizeof(ck_ring_buffer_t) * size);
-  check_mem(*buffer);
-  ck_ring_init(*bus, size);
-  return true;
-error:
-  return false;
-}
-
 AppState *app_state_create(lua_State *L) {
 
-  AppState *as = malloc(sizeof(AppState));
+  AppState *as = calloc(1, sizeof(AppState));
   check_mem(as);
 
   as->running = true;
@@ -33,14 +23,24 @@ AppState *app_state_create(lua_State *L) {
 
   uint16_t control_bus_size = 1024;
 
-  check(
-    create_ring_buffer(&as->osc_control_bus_buffer, &as->osc_control_bus, control_bus_size),
-    "Could not create control bus ring"
-  );
+  ck_ring_init(&as->osc_control_bus, control_bus_size);
+  as->osc_control_bus_buffer = calloc(1, sizeof(ck_ring_buffer_t) * control_bus_size);
+  check_mem(as->osc_control_bus_buffer);
+
+  as->p_time = 0.0;
 
   return as;
 error:
   return NULL;
+}
+
+double app_set_time(AppState *as) {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  double ms = ((double)tv.tv_sec * 1000.0) + ((double)tv.tv_usec / 1000.0);
+  as->p_time = ms;
+  return ms;
 }
 
 void app_state_destroy(AppState *as) {

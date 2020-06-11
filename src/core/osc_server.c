@@ -16,7 +16,7 @@
 void send_code(AppState *app, const char *code) {
   ControlMessage *cm = cm_create(code);
   if (
-    ck_ring_enqueue_spsc(app->osc_control_bus,app->osc_control_bus_buffer, cm) == false
+    ck_ring_enqueue_spsc(&(app->osc_control_bus), app->osc_control_bus_buffer, cm) == false
   ) {
     printf("Could not send message to main thread\n");
   }
@@ -34,7 +34,6 @@ int quit_handler(
   AppState *app = (AppState*) user_data;
   app->running = false;
 
-  printf("quit OSC message\n");
   fflush(stdout);
 
   return 0;
@@ -45,16 +44,17 @@ int run_code_handler(
   int argc, void *data, void *user_data
 ) {
   const char *sent = &argv[0]->s;
-  int sent_length = strlen(sent);
-  char *code = malloc((sent_length + 1) * sizeof(char));
-  strncpy(code, sent, strlen(sent));
+  long sent_length = strlen(sent) + 1;
+  char *code = malloc(sent_length * sizeof(char));
+  strncpy(code, sent, sent_length);
   send_code(user_data, code);
   fflush(stdout);
   return 0;
 }
 
 OSCServer osc_start_server(AppState *app) {
-  printf("Setting up OSC server\n");
+  printf("Starting OSC server\n");
+
   lo_server_thread osc_server = lo_server_thread_new("7770", error);
 
   lo_server_thread_add_method(osc_server, "/run/code", "s", run_code_handler, app);
