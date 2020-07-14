@@ -19,7 +19,7 @@ MAIN_SOURCES      = main.c $(CORE_SOURCES)
 MAIN_OBJECTS      = $(addprefix $(MAIN_BUILD_DIR)/, $(MAIN_SOURCES:.c=.o))
 TEST_OBJECTS      = $(addprefix $(TEST_BUILD_DIR)/, $(TEST_SOURCES:.c=.o))
 
-EXECUTABLE        = trax
+EXECUTABLE        = bin/trax
 TEST_EXECUTABLE   = $(addprefix $(TEST_BUILD_DIR)/, test_$(EXECUTABLE))
 
 .PHONY: clean echo
