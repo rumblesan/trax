@@ -1,3 +1,9 @@
+----------------
+-- Seq
+--
+-- A looping sequence of events with
+-- the same duration
+----------------
 
 local S = {}
 
@@ -9,7 +15,7 @@ local function runMods(s, evt)
   return out
 end
 
-local function next(s, prevBeat, curBeat)
+local function events(s, prevBeat, curBeat)
   local seqlen = #s.elems * s.steplength
   local startpoint = (math.fmod(prevBeat, seqlen) / s.steplength) + 1
   local endpoint = (math.fmod(curBeat, seqlen) / s.steplength) + 1
@@ -37,15 +43,20 @@ local function next(s, prevBeat, curBeat)
   return events
 end
 
-local function map(s, func)
-  s.mappingFunctions[#s.mappingFunctions+1] = func
-  return s
+local function map(seq, func)
+  seq.mappingFunctions[#seq.mappingFunctions+1] = func
+  return seq
+end
+
+local function step(seq, len)
+  seq.steplength = len
 end
 
 function S.new(elems, steplength)
   local seq = {}
-  seq.next = next
+  seq.events = events
   seq.map = map
+  seq.step = step
   seq.mappingFunctions = {}
 
   seq.elems = elems
