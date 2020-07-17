@@ -1,0 +1,37 @@
+
+portmidi = require "portmidi"
+
+livecode = require "./trax/livecode"
+reload = livecode.reload
+
+
+Seq = reload "./trax/seq"
+Evt = reload "./trax/event"
+
+
+
+portmidi.initialize()
+outa = portmidi.getdeviceinfo(2)
+stream = outa:openoutput()
+
+
+s = Seq.new({ 1,2,3,4 }, 0.5)
+
+s2 = Seq.new({ 5,6,7,8 }, 0.5)
+
+s:map(function(v) return v * 8 end)
+
+s:step(1)
+s2:step(1)
+
+Trax:seq(0, function (pBeat, cBeat)
+  Evt.printEvents(s:events(pBeat, cBeat))
+end)
+
+Trax:seq(0)
+
+Trax:seq(1, function (pBeat, cBeat)
+  Evt.printEvents(s2:events(pBeat, cBeat))
+end)
+
+Trax:seq(1)
