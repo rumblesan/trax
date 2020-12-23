@@ -4,7 +4,6 @@ livecode = require "./trax/livecode"
 reload = livecode.reload
 
 Seq = reload "./trax/seq"
-Stream = reload "./trax/seq"
 Evt = reload "./trax/event"
 N = reload "./trax/notes"
 F = reload "./trax/functions"
@@ -31,17 +30,22 @@ end)
 Trax:seq(0)
 
 
-s3 = Ixi.seq("1 2 3 4 ")
+s3 = Ixi.seq("1    2     3      4 ")
        :map(M.setscale(M.scale("major")))
 
-s4 = Ixi.seq("7 8 6 9 ")
+s4 = Ixi.seq("7 8 9 10")
        :map(M.setscale(M.scale("major")))
        :map(F.offset(60))
 
 s5 = Seq.combine({s3, s4})
        :map(N.tonote())
+       :map(function(n) n:play(stream) end)
 
-Evt.printEvents(s4:run(0, 1))
+Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
+  s5:run(pBeat, cBeat)
+end)
+
+Evt.printEvents(s5:run(0, 1))
 
 
 s2 = Ixi.seq("1 2 3 4 ")

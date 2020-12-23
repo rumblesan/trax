@@ -8,7 +8,7 @@
 Util = require "trax.util"
 moduloIdx = Util.moduloIdx
 
-Stream = require "trax.stream"
+Simple = require "trax.simpleseq"
 
 local S = {}
 
@@ -57,7 +57,7 @@ function S.new(elements, durations, offset)
   seq.map = map
   seq.mappingFunctions = {}
 
-  seq.sequences = {Stream.new(elements, durations, offset)}
+  seq.sequences = {Simple.new(elements, durations, offset)}
 
   return seq
 end

@@ -1,7 +1,7 @@
 ----------------
--- Stream
+-- Simple Sequence
 --
--- create a continuous stream of events
+-- the basic mechanics of sequences
 ----------------
 
 Util = require "trax.util"
@@ -37,28 +37,28 @@ local function run(s, prevBeat, curBeat)
 end
 
 function S.new(elements, durations, offset)
-  local stream = {}
+  local s = {}
 
-  stream.run = run
+  s.run = run
 
-  stream.elements = elements
+  s.elements = elements
   if type(durations) == "number" then
-    stream.durations = {durations}
+    s.durations = {durations}
   else
-    stream.durations = durations
+    s.durations = durations
   end
 
-  stream.offset = offset or 0
+  s.offset = offset or 0
 
-  stream.offsets = {}
-  stream.length = 0
+  s.offsets = {}
+  s.length = 0
 
-  for idx, v in pairs(stream.elements) do
-    stream.offsets[idx] = stream.length
-    stream.length = stream.length + moduloIdx(stream.durations, idx)
+  for idx, v in pairs(s.elements) do
+    s.offsets[idx] = s.length
+    s.length = s.length + moduloIdx(s.durations, idx)
   end
 
-  return stream
+  return s
 end
 
 return S
