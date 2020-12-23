@@ -4,30 +4,26 @@
 -- Note functions
 ----------------
 
+Event = require "trax.event"
+
 local N = {}
 
-local function play(note, stream)
-  stream:noteon(note.channel, note.value, note.velocity)
+function N.tostring(n)
+  local s = "MIDI Note: " .. n.value .. " -> " .. n.velocity
+  return s
 end
 
-local function stop(note, stream)
-  stream:noteoff(note.channel, note.value, note.velocity)
-end
+N.mt = {}
+
+N.mt.__tostring = N.tostring
 
 function N.new(value, velocity)
-  local n = {}
-  n.type = "note"
-  n.value = value
-  n.velocity = velocity
-  n.channel = 0
-
-  n.play = play
-  n.stop = stop
-  return n
+  local evt = Event.note(value, velocity)
+  setmetatable(evt, N.mt)
+  return evt
 end
 
 function N.tonote(velocity)
-
   v = velocity or 100
   return function (n)
     return N.new(n, v)

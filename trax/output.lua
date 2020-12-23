@@ -12,11 +12,13 @@ local function send(o, evt)
   else
     print("unknown midi event", evt.type)
   end
+  return evt
 end
 
 local function sender(o)
   return function (evt)
     o:send(evt)
+    return evt
   end
 end
 

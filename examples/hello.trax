@@ -26,9 +26,13 @@ Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
   s1:run(pBeat, cBeat)
 end)
 
-
 Trax:seq(0)
 
+for _, v in pairs(s1:run(0, 3)) do
+  print(v)
+end
+
+drums = O.new(stream, 1)
 
 s3 = Ixi.seq("1    2     3      4 ")
        :map(M.setscale(M.scale("major")))
@@ -39,11 +43,21 @@ s4 = Ixi.seq("7 8 9 10")
 
 s5 = Seq.combine({s3, s4})
        :map(N.tonote())
-       :map(function(n) n:play(stream) end)
+       :map(drums:sender())
 
-Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
+Trax:seq(1, function(pBeat, cBeat, pTime, cTime)
   s5:run(pBeat, cBeat)
 end)
+
+a = {}
+a["__tostring"] = function ()
+  return "helloooo"
+end
+
+
+print(a)
+
+Trax:seq(1)
 
 Evt.printEvents(s5:run(0, 1))
 
