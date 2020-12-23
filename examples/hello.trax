@@ -8,23 +8,19 @@ Evt = reload "./trax/event"
 N = reload "./trax/notes"
 F = reload "./trax/functions"
 M = reload "./trax/melody"
+O = reload "./trax/output"
 Ixi = reload "./trax/ixi"
 
 portmidi.initialize()
 outa = portmidi.getdeviceinfo(2)
 stream = outa:openoutput()
 
-stream:noteon(1, 60, 100)
-stream:noteoff(1, 60, 100)
-
-mn = N.new(60, 100)
-
-mn:play(stream)
+tb303 = O.new(stream, 0)
 
 s1 = Seq.new({ 1,2,3,4 }, 0.5)
        :map(F.offset(60))
-       :map(function(v) return N.new(v, 100) end)
-       :map(function(n) n:play(stream) end)
+       :map(N.tonote())
+       :map(tb303:sender())
 
 Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
   s1:getEvents(pBeat, cBeat)

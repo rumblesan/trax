@@ -16,6 +16,7 @@ end
 
 function N.new(value, velocity)
   local n = {}
+  n.type = "note"
   n.value = value
   n.velocity = velocity
   n.channel = 0
