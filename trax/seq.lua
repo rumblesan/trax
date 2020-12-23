@@ -5,6 +5,14 @@
 -- the same duration
 ----------------
 
+local function moduloIdx(array, idx)
+  local v = idx % #array
+  if v == 0 then
+    v = #array
+  end
+  return array[v]
+end
+
 local S = {}
 
 local function runMods(s, evt)
@@ -15,27 +23,27 @@ local function runMods(s, evt)
   return out
 end
 
-local function events(s, prevBeat, curBeat)
-  local seqlen = #s.elems * s.steplength
-  local startpoint = (math.fmod(prevBeat, seqlen) / s.steplength) + 1
-  local endpoint = (math.fmod(curBeat, seqlen) / s.steplength) + 1
+local function getEvents(s, prevBeat, curBeat)
+  local startpoint = math.fmod(prevBeat + s.offset, s.length)
+  local endpoint = math.fmod(curBeat + s.offset, s.length)
 
+  print("start", startpoint, "end", endpoint, prevBeat, curBeat, s.length)
   local events = {}
 
   if endpoint > startpoint then
-    for k, v in ipairs(s.elems) do
-      if k > endpoint then
+    for idx, v in pairs(s.offsets) do
+      if v >= endpoint then
         break
-      elseif k > startpoint then
-        events[#events+1] = runMods(s, v)
+      elseif v >= startpoint then
+        events[#events+1] = runMods(s, s.elems[idx])
       end
     end
   else
-    for k, v in ipairs(s.elems) do
-      if k < endpoint then
-        events[#events+1] = runMods(s, v)
-      elseif k > startpoint then
-        events[#events+1] = runMods(s, v)
+    for idx, v in pairs(s.offsets) do
+      if v < endpoint then
+        events[#events+1] = runMods(s, s.elems[idx])
+      elseif v >= startpoint then
+        events[#events+1] = runMods(s, s.elems[idx])
       end
     end
   end
@@ -48,19 +56,29 @@ local function map(seq, func)
   return seq
 end
 
-local function step(seq, len)
-  seq.steplength = len
-end
-
-function S.new(elems, steplength)
+function S.new(elems, steplengths, offset)
   local seq = {}
-  seq.events = events
+  seq.getEvents = getEvents
   seq.map = map
-  seq.step = step
   seq.mappingFunctions = {}
 
   seq.elems = elems
-  seq.steplength = steplength
+  if type(steplengths) == "number" then
+    seq.steplengths = {steplengths}
+  else
+    seq.steplengths = steplengths
+  end
+
+  seq.offset = offset or 0
+
+  seq.offsets = {}
+  seq.length = 0
+
+  for idx, v in pairs(elems) do
+    seq.offsets[idx] = seq.length
+    seq.length = seq.length + moduloIdx(seq.steplengths, idx)
+  end
+
   return seq
 end
 
