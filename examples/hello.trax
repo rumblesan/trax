@@ -1,34 +1,50 @@
 
 portmidi = require "portmidi"
-
 livecode = require "./trax/livecode"
 reload = livecode.reload
 
-
 Seq = reload "./trax/seq"
 Evt = reload "./trax/event"
-
-
+N = reload "./trax/notes"
+F = reload "./trax/functions"
 
 portmidi.initialize()
 outa = portmidi.getdeviceinfo(2)
 stream = outa:openoutput()
 
+stream:noteon(1, 60, 100)
+stream:noteoff(1, 60, 100)
 
-s = Seq.new({ 1,2,3,4 }, 0.5)
+mn = N.new(60, 100)
+
+mn:play(stream)
+
+s1 = Seq.new({ 1,2,3,4 }, 0.5)
+       :map(F.offset(60))
+       :map(function(v) return N.new(v, 100) end)
+       :map(function(n) n:play(stream) end)
+
+Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
+  s1:getEvents(pBeat, cBeat)
+end)
+
+s1:step(3)
+
+b = 65
+a = b or 3
+print(a)
+
+Trax:seq(0)
+
+
 
 s2 = Seq.new({ 5,6,7,8 }, 0.5)
 
-s:map(function(v) return v * 8 end)
+Seq = reload "./trax/seq"
+s2 = Seq.new({ 5,6,7,8 }, {0.5, 0.7})
+Evt.printEvents(s2:getEvents(0, 1.1))
 
-s:step(1)
-s2:step(1)
-
-Trax:seq(0, function (pBeat, cBeat)
-  Evt.printEvents(s:events(pBeat, cBeat))
-end)
-
-Trax:seq(0)
+Evt.printEvents(s2:getEvents(1.91, 0.1))
 
 Trax:seq(1, function (pBeat, cBeat)
   Evt.printEvents(s2:events(pBeat, cBeat))
