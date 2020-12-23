@@ -25,5 +25,13 @@ function N.new(value, velocity)
   return n
 end
 
+function N.tonote(velocity)
+
+  v = velocity or 100
+  return function (n)
+    return N.new(n, v)
+  end
+end
+
 
 return N

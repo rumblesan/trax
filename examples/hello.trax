@@ -7,6 +7,8 @@ Seq = reload "./trax/seq"
 Evt = reload "./trax/event"
 N = reload "./trax/notes"
 F = reload "./trax/functions"
+M = reload "./trax/melody"
+Ixi = reload "./trax/ixi"
 
 portmidi.initialize()
 outa = portmidi.getdeviceinfo(2)
@@ -30,15 +32,16 @@ end)
 
 s1:step(3)
 
-b = 65
-a = b or 3
-print(a)
 
 Trax:seq(0)
 
 
 
-s2 = Seq.new({ 5,6,7,8 }, 0.5)
+s2 = Ixi.seq("1 2 3 4 ")
+       :map(M.setscale(M.scale("major")))
+       :map(F.offset(60))
+       :map(N.tonote())
+       :map(function(n) n:play(stream) end)
 
 Seq = reload "./trax/seq"
 s2 = Seq.new({ 5,6,7,8 }, {0.5, 0.7})
@@ -47,7 +50,7 @@ Evt.printEvents(s2:getEvents(0, 1.1))
 Evt.printEvents(s2:getEvents(1.91, 0.1))
 
 Trax:seq(1, function (pBeat, cBeat)
-  Evt.printEvents(s2:events(pBeat, cBeat))
+  Evt.printEvents(s2:getEvents(pBeat, cBeat))
 end)
 
 Trax:seq(1)

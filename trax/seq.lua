@@ -5,13 +5,8 @@
 -- the same duration
 ----------------
 
-local function moduloIdx(array, idx)
-  local v = idx % #array
-  if v == 0 then
-    v = #array
-  end
-  return array[v]
-end
+Util = require "trax.util"
+moduloIdx = Util.moduloIdx
 
 local S = {}
 
@@ -27,7 +22,6 @@ local function getEvents(s, prevBeat, curBeat)
   local startpoint = math.fmod(prevBeat + s.offset, s.length)
   local endpoint = math.fmod(curBeat + s.offset, s.length)
 
-  print("start", startpoint, "end", endpoint, prevBeat, curBeat, s.length)
   local events = {}
 
   if endpoint > startpoint then
