@@ -4,6 +4,7 @@ livecode = require "./trax/livecode"
 reload = livecode.reload
 
 Seq = reload "./trax/seq"
+Stream = reload "./trax/seq"
 Evt = reload "./trax/event"
 N = reload "./trax/notes"
 F = reload "./trax/functions"
@@ -23,14 +24,24 @@ s1 = Seq.new({ 1,2,3,4 }, 0.5)
        :map(tb303:sender())
 
 Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
-  s1:getEvents(pBeat, cBeat)
+  s1:run(pBeat, cBeat)
 end)
-
-s1:step(3)
 
 
 Trax:seq(0)
 
+
+s3 = Ixi.seq("1 2 3 4 ")
+       :map(M.setscale(M.scale("major")))
+
+s4 = Ixi.seq("7 8 6 9 ")
+       :map(M.setscale(M.scale("major")))
+       :map(F.offset(60))
+
+s5 = Seq.combine({s3, s4})
+       :map(N.tonote())
+
+Evt.printEvents(s4:run(0, 1))
 
 
 s2 = Ixi.seq("1 2 3 4 ")
@@ -41,12 +52,12 @@ s2 = Ixi.seq("1 2 3 4 ")
 
 Seq = reload "./trax/seq"
 s2 = Seq.new({ 5,6,7,8 }, {0.5, 0.7})
-Evt.printEvents(s2:getEvents(0, 1.1))
+Evt.printEvents(s2:run(0, 1.1))
 
-Evt.printEvents(s2:getEvents(1.91, 0.1))
+Evt.printEvents(s2:run(1.91, 0.1))
 
 Trax:seq(1, function (pBeat, cBeat)
-  Evt.printEvents(s2:getEvents(pBeat, cBeat))
+  Evt.printEvents(s2:run(pBeat, cBeat))
 end)
 
 Trax:seq(1)

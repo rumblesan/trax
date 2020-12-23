@@ -8,6 +8,8 @@
 Util = require "trax.util"
 moduloIdx = Util.moduloIdx
 
+Stream = require "trax.stream"
+
 local S = {}
 
 local function runMods(s, evt)
@@ -18,27 +20,12 @@ local function runMods(s, evt)
   return out
 end
 
-local function getEvents(s, prevBeat, curBeat)
-  local startpoint = math.fmod(prevBeat + s.offset, s.length)
-  local endpoint = math.fmod(curBeat + s.offset, s.length)
-
+local function run(s, prevBeat, curBeat)
   local events = {}
 
-  if endpoint > startpoint then
-    for idx, v in pairs(s.offsets) do
-      if v >= endpoint then
-        break
-      elseif v >= startpoint then
-        events[#events+1] = runMods(s, s.elems[idx])
-      end
-    end
-  else
-    for idx, v in pairs(s.offsets) do
-      if v < endpoint then
-        events[#events+1] = runMods(s, s.elems[idx])
-      elseif v >= startpoint then
-        events[#events+1] = runMods(s, s.elems[idx])
-      end
+  for _, parent in ipairs(s.sequences) do
+    for _, evt in ipairs(parent:run(prevBeat, curBeat)) do
+      events[#events+1] = runMods(s, evt)
     end
   end
 
@@ -50,28 +37,27 @@ local function map(seq, func)
   return seq
 end
 
-function S.new(elems, steplengths, offset)
+local function join(seq, seq)
+end
+
+function S.combine(parents)
   local seq = {}
-  seq.getEvents = getEvents
+  seq.run = run
   seq.map = map
   seq.mappingFunctions = {}
 
-  seq.elems = elems
-  if type(steplengths) == "number" then
-    seq.steplengths = {steplengths}
-  else
-    seq.steplengths = steplengths
-  end
+  seq.sequences = parents
 
-  seq.offset = offset or 0
+  return seq
+end
 
-  seq.offsets = {}
-  seq.length = 0
+function S.new(elements, durations, offset)
+  local seq = {}
+  seq.run = run
+  seq.map = map
+  seq.mappingFunctions = {}
 
-  for idx, v in pairs(elems) do
-    seq.offsets[idx] = seq.length
-    seq.length = seq.length + moduloIdx(seq.steplengths, idx)
-  end
+  seq.sequences = {Stream.new(elements, durations, offset)}
 
   return seq
 end
