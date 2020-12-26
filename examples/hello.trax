@@ -26,7 +26,13 @@ Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
   s1:run(pBeat, cBeat)
 end)
 
+Trax:start()
+
+Trax:stop()
+
 Trax:seq(0)
+
+print(math.fmod(3.62, 0.25))
 
 for _, v in pairs(s1:run(0, 3)) do
   print(v)
@@ -48,14 +54,6 @@ s5 = Seq.combine({s3, s4})
 Trax:seq(1, function(pBeat, cBeat, pTime, cTime)
   s5:run(pBeat, cBeat)
 end)
-
-a = {}
-a["__tostring"] = function ()
-  return "helloooo"
-end
-
-
-print(a)
 
 Trax:seq(1)
 

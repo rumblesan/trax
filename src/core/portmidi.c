@@ -67,11 +67,24 @@ static int MidiStream_WriteNoteOff(lua_State *L) {
   return 1;
 }
 
+static int MidiStream_WriteByte(lua_State *L) {
+  MidiStream *mstream = checkmidistream(L, 1);
+  int value = luaL_checkinteger(L, 2);
+
+  PmMessage msg = 0xff & value;
+
+  PmError err = Pm_WriteShort(mstream->stream, 0, msg);
+  if (err != pmNoError) { return luaL_error(L, Pm_GetErrorText(err)); }
+  lua_pushnil(L);
+  return 1;
+}
+
 static const struct luaL_Reg portmidi_midistream_m [] = {
   {"__tostring", c_pm_MidiStreamToString},
   {"direction", c_pm_MidiStreamDirection},
   {"noteon", MidiStream_WriteNoteOn},
   {"noteoff", MidiStream_WriteNoteOff},
+  {"byte", MidiStream_WriteByte},
   {NULL, NULL}  /* sentinel */
 };
 
