@@ -186,7 +186,6 @@ static int c_pm_DeviceToString(lua_State *L) {
   int fulllen = namelen + 1 + 2 + 1 + 3 + 1;
   char dir[4];
   if (device->info->input) {
-    printf("input device\n");
     dir[0] = 'I';
     dir[1] = 'n';
     dir[2] = '\0';

@@ -58,10 +58,8 @@ function Trax.run(t, pTime, cTime)
   if t.midiout and t.syncout then
     if t.syncoffset > t.syncinterval then
       local syncmessages = math.floor(t.syncoffset / t.syncinterval)
-      print(t.syncoffset, syncmessages)
       t.syncoffset = math.fmod(t.syncoffset, t.syncinterval)
       for i = 1, syncmessages do
-        print(bpm, t.beat, bdelta, syncmessages)
         t.midiout:byte(0xF8)
       end
     end
