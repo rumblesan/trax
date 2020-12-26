@@ -12,10 +12,31 @@ O = reload "./trax/output"
 Ixi = reload "./trax/ixi"
 
 portmidi.initialize()
-outa = portmidi.getdeviceinfo(2)
+
+outa = portmidi.getdeviceinfo(19)
+
 stream = outa:openoutput()
 
+monomachine = O.new(stream, 0)
+
+Trax:setmidiout(stream)
+
+Trax.bpm = 95
+Trax.syncout = true
+Trax:start()
+
+m = 1
+for i = 1, m do
+  print("hello", i)
+end
+
+Trax:stop()
+
 tb303 = O.new(stream, 0)
+
+tb303 = O.new(stream, 0)
+
+
 
 s1 = Seq.new({ 1,2,3,4 }, 0.5)
        :map(F.offset(60))
@@ -25,6 +46,8 @@ s1 = Seq.new({ 1,2,3,4 }, 0.5)
 Trax:seq(0, function(pBeat, cBeat, pTime, cTime)
   s1:run(pBeat, cBeat)
 end)
+
+Trax.syncout = true
 
 Trax:start()
 

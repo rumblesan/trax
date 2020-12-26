@@ -2,6 +2,8 @@
 Trax = {}
 Trax.bpm = 120
 Trax.beat = 0
+Trax.syncoffset = 0
+Trax.syncinterval = 1/24
 Trax.sequences = {}
 Trax.midiout = nil
 Trax.syncout = false
@@ -50,12 +52,18 @@ function Trax.run(t, pTime, cTime)
   local bdelta = (bpm / 60000) * tdiff
   local pBeat = t.beat
   t.beat = t.beat + bdelta
+  t.syncoffset = t.syncoffset + bdelta
   local cBeat = t.beat
 
   if t.midiout and t.syncout then
-    local syncMessages = math.floor(bdelta * (1/24))
-    for i = 0, syncMessages do
-      t.midiout:byte(0xF8)
+    if t.syncoffset > t.syncinterval then
+      local syncmessages = math.floor(t.syncoffset / t.syncinterval)
+      print(t.syncoffset, syncmessages)
+      t.syncoffset = math.fmod(t.syncoffset, t.syncinterval)
+      for i = 1, syncmessages do
+        print(bpm, t.beat, bdelta, syncmessages)
+        t.midiout:byte(0xF8)
+      end
     end
   end
 
